@@ -1,5 +1,4 @@
 import streamlit as st
-from streamlit_extras.add_vertical_space import add_vertical_space
 from PyPDF2 import PdfFileReader, PdfFileWriter,PdfReader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.embeddings.openai import OpenAIEmbeddings
@@ -51,7 +50,6 @@ with st.sidebar:
     
     ''')
 
-    add_vertical_space(4)
     st.write('💡All about pdf based chatbot, created by VK🤗')
 
 load_dotenv()
