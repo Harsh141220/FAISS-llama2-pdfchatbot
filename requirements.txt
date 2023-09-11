@@ -1,7 +1,2 @@
 streamlit
-openai
-PyPDF2
-llama-index
-dotenv
-nltk
 replicate
