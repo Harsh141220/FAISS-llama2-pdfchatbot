@@ -1,67 +1,130 @@
-#pip install pinecone-client langchain pypdf replicate
+import streamlit as st
+from streamlit_extras.add_vertical_space import add_vertical_space
+from PyPDF2 import PdfFileReader, PdfFileWriter,PdfReader
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain.embeddings.openai import OpenAIEmbeddings
+from langchain.vectorstores import FAISS
+from langchain.llms import OpenAI
+from langchain.chains.question_answering import load_qa_chain
+from langchain.callbacks import get_openai_callback
+
+import pickle
 import os
-import sys
-import pinecone
-from langchain.llms import Replicate
-from langchain.vectorstores import Pinecone
-from langchain.text_splitter import CharacterTextSplitter
-from langchain.document_loaders import PyPDFLoader
-from langchain.embeddings import HuggingFaceEmbeddings
-from langchain.chains import ConversationalRetrievalChain
-
-api_key='1a07e0a3-d59b-4b01-b643-556e5210907e'
-env='gcp-starter'
-replicate='r8_2tIpI34I4Yu3mFyVsZeWElGqiyYs26g0WKbMM'
+#load api key lib
+from dotenv import load_dotenv
+import base64
 
 
-# Replicate API token
-#os.environ['Default'] = replicate
-os.environ['REPLICATE_API_TOKEN'] = replicate
+#Background images add function
+def add_bg_from_local(image_file):
+    with open(image_file, "rb") as image_file:
+        encoded_string = base64.b64encode(image_file.read())
+    st.markdown(
+    f"""
+    <style>
+    .stApp {{
+        background-image: url(data:image/{"jpeg"};base64,{encoded_string.decode()});
+        background-size: cover;
+    }}
+    </style>
+    """,
+    unsafe_allow_html=True
+    )
+#add_bg_from_local('images.jpeg')  
 
-# Initialize Pinecone
-pinecone.init(api_key=api_key, environment=env)
-# Load and preprocess the PDF document
-loader = PyPDFLoader('/dbfs/FileStore/tables/META_Q1_2023_Earnings_Call_Transcript.pdf')
-documents = loader.load()
+#sidebar contents
 
-# Split the documents into smaller chunks for processing
-text_splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=0)
-texts = text_splitter.split_documents(documents)
-texts[1]
-documents
-#Use HuggingFace embeddings for transforming text into numerical vectors
-embeddings = HuggingFaceEmbeddings()
-#Set up the Pinecone vector database
-index_name = "llama2"
-index = pinecone.Index(index_name)
-vectordb = Pinecone.from_documents(texts, embeddings, index_name=index_name)
-#Initialize Replicate Llama2 Model
-llm = Replicate(
-    model="a16z-infra/llama13b-v2-chat:df7690f1994d94e96ad9d568eac121aecf50684a0b0963b25a41cc40061269e5",
+with st.sidebar:
+    st.title('🦜️🔗VK - PDF BASED LLM-LANGCHAIN CHATBOT🤗')
+    st.markdown('''
+    ## About APP:
+
+    The app's primary resource is utilised to create::
+
+    - [streamlit](https://streamlit.io/)
+    - [Langchain](https://docs.langchain.com/docs/)
+    - [OpenAI](https://openai.com/)
+
+    ## About me:
+
+    - [Linkedin](https://www.linkedin.com/in/venkat-vk/)
+    
+    ''')
+
+    add_vertical_space(4)
+    st.write('💡All about pdf based chatbot, created by VK🤗')
+
+load_dotenv()
+
+def main():
+    st.header("📄Chat with your pdf file🤗")
+
+    #upload a your pdf file
+    pdf = st.file_uploader("Upload your PDF", type='pdf')
+    st.write(pdf.name)
+
+    if pdf is not None:
+        pdf_reader = PdfReader(pdf)
+
+        text = ""
+        for page in pdf_reader.pages:
+            text+= page.extract_text()
+
+        #langchain_textspliter
+        text_splitter = RecursiveCharacterTextSplitter(
+            chunk_size = 1000,
+            chunk_overlap = 200,
+            length_function = len
+        )
+
+        chunks = text_splitter.split_text(text=text)
+
+        
+        #store pdf name
+        store_name = pdf.name[:-4]
+        
+        if os.path.exists(f"{store_name}.pkl"):
+            with open(f"{store_name}.pkl","rb") as f:
+                vectorstore = pickle.load(f)
+            #st.write("Already, Embeddings loaded from the your folder (disks)")
+        else:
+            #embedding (Openai methods) 
+            embeddings = HuggingFaceEmbeddings()
+
+            #Store the chunks part in db (vector)
+            vectorstore = FAISS.from_texts(chunks,embedding=embeddings)
+
+            with open(f"{store_name}.pkl","wb") as f:
+                pickle.dump(vectorstore,f)
+            
+            #st.write("Embedding computation completed")
+
+        #st.write(chunks)
+        
+        #Accept user questions/query
+
+        query = st.text_input("Ask questions about related your upload pdf file")
+        #st.write(query)
+
+        if query:
+            docs = vectorstore.similarity_search(query=query,k=3)
+            #st.write(docs)
+            
+            #openai rank lnv process
+            llm = llm = Replicate(
+            model="a16z-infra/llama13b-v2-chat:df7690f1994d94e96ad9d568eac121aecf50684a0b0963b25a41cc40061269e5",
     # model="replicate/llama-2-70b-chat:2796ee9483c3fd7aa2e171d38f4ca12251a30609463dcfd4cd76703f22e96cdf",
     #model="meta-llama/Llama-2-70b-chat-hf",
-    input={"temperature": 0.5, "max_length": 25000} #here temp refers to randomness of the generated text
-)
-#Set up the Conversational Retrieval Chain
-qa_chain = ConversationalRetrievalChain.from_llm(
-    llm,
-    vectordb.as_retriever(search_kwargs={'k': 3}),
-    return_source_documents=True
-)
-chat_history = []
-questions=["How AI has contributed to the growth of Reels ?"]
-for i in questions:
-    result = qa_chain({'question': i, 'chat_history': chat_history})
-    print(i+"\n"+"Answer: "+result['answer']+"\n\n\n")
-    chat_history.append((i, result['answer']))
-chat_history
-# Start chatting with the chatbot
-chat_history = []
-while True:
-    query = input('Prompt: ')
-    if query.lower() in ["exit", "quit", "q"]:
-        print('Exiting')
-        sys.exit()
-    result = qa_chain({'question': query, 'chat_history': chat_history})
-    print('Answer: ' + result['answer'] + '\n')
-    chat_history.append((query, result['answer']))
+            input={"temperature": 0.5, "max_length": 25000} #here temp refers to randomness of the generated text
+        )
+            chain = load_qa_chain(llm=llm, chain_type= "stuff")
+            
+            with get_openai_callback() as cb:
+                response = chain.run(input_documents = docs, question = query)
+                print(cb)
+            st.write(response)
+
+
+
+if __name__=="__main__":
+    main()
