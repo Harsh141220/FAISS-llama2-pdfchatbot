@@ -66,7 +66,7 @@ embeddings = HuggingFaceEmbeddings()
 api_key='1a07e0a3-d59b-4b01-b643-556e5210907e'
 env='gcp-starter'
 pinecone.init(api_key=api_key, environment=env)
-loader = PyPDFLoader("https://github.com/Harsh141220/Streamlit/edit/main/META-Q1-2023-Earnings-Call-Transcript%20(1).pdf")
+loader = PyPDFLoader(r"data/META-Q1-2023-Earnings-Call-Transcript.pdf")
 print(loader)
 documents = loader.load()
 
