@@ -80,7 +80,12 @@ index_name = "llama2"
 index = pinecone.Index(index_name)
 vectordb = Pinecone.from_documents(texts, embeddings, index_name=index_name)
 #Set up the Conversational Retrieval Chain
-qa_chain = ConversationalRetrievalChain.from_llm(llm,vectordb.as_retriever(search_kwargs={'k': 3}),return_source_documents=True)
+
+llm2 = Replicate(
+    model=llm
+    input={"temperature": temperature, "max_length": max_length} #here temp refers to randomness of the generated text
+)
+qa_chain = ConversationalRetrievalChain.from_llm(llm2,vectordb.as_retriever(search_kwargs={'k': 3}),return_source_documents=True)
 result = qa_chain({'question': i, 'chat_history': chat_history})
 
 # Generate a new response if last message is not from assistant
