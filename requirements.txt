@@ -4,3 +4,4 @@ pinecone-client
 langchain
 pypdf
 sentence-transformers
+streamlit_extras
