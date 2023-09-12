@@ -4,3 +4,4 @@ pinecone-client
 langchain
 pypdf
 replicate
+sentence-transformers`
