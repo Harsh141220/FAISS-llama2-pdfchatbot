@@ -35,11 +35,7 @@ documents = loader.load()
 text_splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=0)
 texts = text_splitter.split_documents(documents)
 
-#Set up the Pinecone vector database
-index_name = "llama2"
-index = pinecone.Index(index_name)
-vectordb = Pinecone.from_documents(texts, embeddings, index_name=index_name)
-#Set up the Conversational Retrieval Chain
+
 
 chat_history=[]
 replicate_api="r8_SfExzEDw1tiyfpKl7ADFiAyaMu1rJfB1VE5m2"
@@ -61,6 +57,11 @@ with st.sidebar:
     top_p = st.sidebar.slider('top_p', min_value=0.01, max_value=1.0, value=0.9, step=0.01)
     max_length = st.sidebar.slider('max_length', min_value=32, max_value=4096, value=512, step=8)
 
+#Set up the Pinecone vector database
+index_name = "llama2"
+index = pinecone.Index(index_name)
+vectordb = Pinecone.from_documents(texts, embeddings, index_name=index_name)
+#Set up the Conversational Retrieval Chain
 
 if pdf is not None:
     pdf_reader = PdfReader(pdf)
