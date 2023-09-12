@@ -25,24 +25,10 @@ import base64
 
 # App title
 st.set_page_config(page_title="🦙💬 Eucloid data solutions Chatbot")
-api_key='1a07e0a3-d59b-4b01-b643-556e5210907e'
-env='gcp-starter'
-pinecone.init(api_key=api_key, environment=env)
-loader = PyPDFLoader("data/META-Q1-2023-Earnings-Call-Transcript.pdf")
-documents = loader.load()
-
-# Split the documents into smaller chunks for processing
-text_splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=0)
-texts = text_splitter.split_documents(documents)
-
-
-
 chat_history=[]
 replicate_api="r8_SfExzEDw1tiyfpKl7ADFiAyaMu1rJfB1VE5m2"
 os.environ['REPLICATE_API_TOKEN'] = replicate_api
-
 pdf = st.file_uploader("Upload your PDF", type='pdf')
-st.write(pdf.name)
 # Replicate Credentials
 with st.sidebar:
     st.title('🦙💬 Eucloid data solutions Chatbot')
@@ -57,13 +43,8 @@ with st.sidebar:
     top_p = st.sidebar.slider('top_p', min_value=0.01, max_value=1.0, value=0.9, step=0.01)
     max_length = st.sidebar.slider('max_length', min_value=32, max_value=4096, value=512, step=8)
 
-#Set up the Pinecone vector database
-index_name = "llama2"
-index = pinecone.Index(index_name)
-vectordb = Pinecone.from_documents(texts, embeddings, index_name=index_name)
-#Set up the Conversational Retrieval Chain
-
 if pdf is not None:
+    st.write(pdf.name)
     pdf_reader = PdfReader(pdf)
     text = ""
     for page in pdf_reader.pages:
@@ -89,6 +70,7 @@ if pdf is not None:
             vectorstore = FAISS.from_texts(chunks,embedding=embeddings)
             with open(f"{store_name}.pkl","wb") as f:
                 pickle.dump(vectorstore,f)
+                
             
 # Store LLM generated responses
 if "messages" not in st.session_state.keys():
@@ -108,15 +90,19 @@ st.sidebar.button('Clear Chat History', on_click=clear_chat_history)
 # Function for generating LLaMA2 response. Refactored from https://github.com/a16z-infra/llama2-chatbot
 def generate_llama2_response(prompt_input):
     string_dialogue = "You are an analyst. Your work is to refer the document/information provided to you and provide an answer. "
-    for dict_message in st.session_state.messages:
-        if dict_message["role"] == "user":
-            string_dialogue += "User: " + dict_message["content"] + "\n\n"
-        else:
-            string_dialogue += "Assistant: " + dict_message["content"] + "\n\n"
-    llm2 = Replicate(model=llm,input={"temperature": temperature, "max_length": max_length, "top_p":top_p,"repetition_penalty":1 }) #here temp refers to randomness of the generated text
-    qa_chain = ConversationalRetrievalChain.from_llm(llm2,vectordb.as_retriever(search_kwargs={'k': 3}),return_source_documents=True)
-    result = qa_chain({'question': f"{string_dialogue} {prompt_input} Assistant: ",'chat_history': chat_history})
-    return result['answer']
+    docs = vectorstore.similarity_search(query=query,k=3)
+    llm2 = Replicate(
+        model=llm,
+    input={"temperature": temperature, "max_length": max_length, "top_p"=top_p } #here temp refers to randomness of the generated text
+    )            
+    chain = load_qa_chain(llm=llm2, chain_type= "stuff")
+        for dict_message in st.session_state.messages:
+            if dict_message["role"] == "user":
+                string_dialogue += "User: " + dict_message["content"] + "\n\n"
+            else:
+                string_dialogue += "Assistant: " + dict_message["content"] + "\n\n"
+    response = chain.run(input_documents = docs, question = f"{string_dialogue} {prompt_input} Assistant: ")
+    return response
     
 
 
