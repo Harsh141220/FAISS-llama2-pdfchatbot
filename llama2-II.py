@@ -83,7 +83,7 @@ def generate_llama2_response(prompt_input):
     docs = vectorstore.similarity_search(query=query,k=3)
     llm2 = Replicate(
         model=llm,
-    input={"temperature": temperature, "max_length": max_length, "top_p"=top_p } #here temp refers to randomness of the generated text
+    input={"temperature": temperature, "max_length": max_length, "top_p":top_p } #here temp refers to randomness of the generated text
     )            
     chain = load_qa_chain(llm=llm2, chain_type= "stuff")
         for dict_message in st.session_state.messages:
