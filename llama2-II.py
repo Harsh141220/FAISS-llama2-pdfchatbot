@@ -86,10 +86,10 @@ def generate_llama2_response(prompt_input):
     input={"temperature": temperature, "max_length": max_length, "top_p":top_p } #here temp refers to randomness of the generated text
     )            
     chain = load_qa_chain(llm=llm2, chain_type= "stuff")
-        for dict_message in st.session_state.messages:
-            if dict_message["role"] == "user":
+    for dict_message in st.session_state.messages:
+        if dict_message["role"] == "user":
                 string_dialogue += "User: " + dict_message["content"] + "\n\n"
-            else:
+        else:
                 string_dialogue += "Assistant: " + dict_message["content"] + "\n\n"
     response = chain.run(input_documents = docs, question = f"{string_dialogue} {prompt_input} Assistant: ")
     return response
