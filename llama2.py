@@ -1,23 +1,23 @@
 import streamlit as st
 import replicate
 import os
+import sys
+import pinecone
+from langchain.vectorstores import Pinecone
+from langchain.text_splitter import CharacterTextSplitter
+from langchain.document_loaders import PyPDFLoader
+from langchain.embeddings import HuggingFaceEmbeddings
+from langchain.chains import ConversationalRetrievalChain
 
 # App title
-st.set_page_config(page_title="🦙💬 Llama 2 Chatbot")
+st.set_page_config(page_title="Eucloid Chatbot")
+
+replicate_api='r8_SfExzEDw1tiyfpKl7ADFiAyaMu1rJfB1VE5m2'
+os.environ['REPLICATE_API_TOKEN'] = replicate_api
 
 # Replicate Credentials
 with st.sidebar:
-    st.title('🦙💬 Llama 2 Chatbot')
-    if 'REPLICATE_API_TOKEN' in st.secrets:
-        st.success('API key already provided!', icon='✅')
-        replicate_api = st.secrets['REPLICATE_API_TOKEN']
-    else:
-        replicate_api = st.text_input('Enter Replicate API token:', type='password')
-        if not (replicate_api.startswith('r8_') and len(replicate_api)==40):
-            st.warning('Please enter your credentials!', icon='⚠️')
-        else:
-            st.success('Proceed to entering your prompt message!', icon='👉')
-    os.environ['REPLICATE_API_TOKEN'] = replicate_api
+    st.title('Eucloid Chatbot')
 
     st.subheader('Models and parameters')
     selected_model = st.sidebar.selectbox('Choose a Llama2 model', ['Llama2-7B', 'Llama2-13B'], key='selected_model')
@@ -28,7 +28,6 @@ with st.sidebar:
     temperature = st.sidebar.slider('temperature', min_value=0.01, max_value=5.0, value=0.1, step=0.01)
     top_p = st.sidebar.slider('top_p', min_value=0.01, max_value=1.0, value=0.9, step=0.01)
     max_length = st.sidebar.slider('max_length', min_value=32, max_value=5000, value=120, step=8)
-    st.markdown('📖 Learn how to build this app in this [blog](https://blog.streamlit.io/how-to-build-a-llama-2-chatbot/)!')
 
 # Store LLM generated responses
 if "messages" not in st.session_state.keys():
@@ -62,11 +61,36 @@ if prompt := st.chat_input(disabled=not replicate_api):
     with st.chat_message("user"):
         st.write(prompt)
 
+api_key='1a07e0a3-d59b-4b01-b643-556e5210907e'
+env='gcp-starter'
+pinecone.init(api_key=api_key, environment=env)
+
+loader = PyPDFLoader('/dbfs/FileStore/tables/META_Q1_2023_Earnings_Call_Transcript.pdf')
+documents = loader.load()
+
+# Split the documents into smaller chunks for processing
+text_splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=0)
+texts = text_splitter.split_documents(documents)
+embeddings = HuggingFaceEmbeddings()
+
+#Set up the Pinecone vector database
+index_name = "llama2"
+index = pinecone.Index(index_name)
+vectordb = Pinecone.from_documents(texts, embeddings, index_name=index_name)
+#Set up the Conversational Retrieval Chain
+qa_chain = ConversationalRetrievalChain.from_llm(
+    llm,
+    vectordb.as_retriever(search_kwargs={'k': 3}),
+    return_source_documents=True
+)
+
+result = qa_chain({'question': prompt})
+
 # Generate a new response if last message is not from assistant
 if st.session_state.messages[-1]["role"] != "assistant":
     with st.chat_message("assistant"):
         with st.spinner("Thinking..."):
-            response = generate_llama2_response(prompt)
+            response = result['answer'] #generate_llama2_response(prompt)
             placeholder = st.empty()
             full_response = ''
             for item in response:
