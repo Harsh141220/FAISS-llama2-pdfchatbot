@@ -73,7 +73,7 @@ def generate_llama2_response(prompt_input):
             string_dialogue += "Assistant: " + dict_message["content"] + "\n\n"
     llm2 = Replicate(model=llm,input={"temperature": temperature, "max_length": max_length, "top_p":top_p,"repetition_penalty":1 }) #here temp refers to randomness of the generated text
     qa_chain = ConversationalRetrievalChain.from_llm(llm2,vectordb.as_retriever(search_kwargs={'k': 3}),return_source_documents=True)
-    result = qa_chain({'question': f"{string_dialogue} {prompt_input} Assistant: "})
+    result = qa_chain({'question': f"{string_dialogue} {prompt_input} Assistant: ",'chat_history'=chat_history})
     return result['answer']
     
 
