@@ -9,7 +9,7 @@ from langchain.document_loaders import PyPDFLoader
 from langchain.embeddings import HuggingFaceEmbeddings
 from langchain.chains import ConversationalRetrievalChain
 import requests
-
+import loader
 
 # App title
 st.set_page_config(page_title="Eucloid Chatbot")
