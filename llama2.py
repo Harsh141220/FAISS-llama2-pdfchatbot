@@ -30,6 +30,7 @@ with st.sidebar:
     top_p = st.sidebar.slider('top_p', min_value=0.01, max_value=1.0, value=0.9, step=0.01)
     max_length = st.sidebar.slider('max_length', min_value=32, max_value=5000, value=120, step=8)
 
+chat_history = []
 # Store LLM generated responses
 if "messages" not in st.session_state.keys():
     st.session_state.messages = [{"role": "assistant", "content": "How may I assist you today?"}]
@@ -80,7 +81,7 @@ index = pinecone.Index(index_name)
 vectordb = Pinecone.from_documents(texts, embeddings, index_name=index_name)
 #Set up the Conversational Retrieval Chain
 qa_chain = ConversationalRetrievalChain.from_llm(llm,vectordb.as_retriever(search_kwargs={'k': 3}),return_source_documents=True)
-result = qa_chain({'question': prompt})
+result = qa_chain({'question': i, 'chat_history': chat_history})
 
 # Generate a new response if last message is not from assistant
 if st.session_state.messages[-1]["role"] != "assistant":
