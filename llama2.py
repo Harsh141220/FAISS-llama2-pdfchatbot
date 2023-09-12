@@ -1,5 +1,5 @@
 import streamlit as st
-import replicate
+import Replicate
 import os
 import sys
 import pinecone
