@@ -1,5 +1,5 @@
 import streamlit as st
-import Replicate
+from langchain.llms import Replicate
 import os
 import sys
 import pinecone
