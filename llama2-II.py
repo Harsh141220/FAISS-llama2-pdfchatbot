@@ -23,38 +23,7 @@ import os
 #load api key lib
 from dotenv import load_dotenv
 import base64
-pdf = st.file_uploader("Upload your PDF", type='pdf')
-st.write(pdf.name)
 
-if pdf is not None:
-    pdf_reader = PdfReader(pdf)
-    text = ""
-    for page in pdf_reader.pages:
-            text+= page.extract_text()
-
-        #langchain_textspliter
-    text_splitter = RecursiveCharacterTextSplitter(
-            chunk_size = 1000,
-            chunk_overlap = 200,
-            length_function = len
-        )
-
-    chunks = text_splitter.split_text(text=text)
-    store_name = pdf.name[:-4]
-    if os.path.exists(f"{store_name}.pkl"):
-            with open(f"{store_name}.pkl","rb") as f:
-                vectorstore = pickle.load(f)
-            #st.write("Already, Embeddings loaded from the your folder (disks)")
-    else:
-            #embedding (Openai methods) 
-            embeddings = HuggingFaceEmbeddings()
-
-            #Store the chunks part in db (vector)
-            vectorstore = FAISS.from_texts(chunks,embedding=embeddings)
-
-            with open(f"{store_name}.pkl","wb") as f:
-                pickle.dump(vectorstore,f)
-            
 # App title
 st.set_page_config(page_title="🦙💬 Eucloid data solutions Chatbot")
 api_key='1a07e0a3-d59b-4b01-b643-556e5210907e'
@@ -80,8 +49,10 @@ os.environ['REPLICATE_API_TOKEN'] = replicate_api
 # Replicate Credentials
 with st.sidebar:
     st.title('🦙💬 Eucloid data solutions Chatbot')
-
+    
     st.subheader('Models and parameters')
+    pdf = st.file_uploader("Upload your PDF", type='pdf')
+    st.write(pdf.name)
     selected_model = st.sidebar.selectbox('Choose a Llama2 model', ['Llama2-7B', 'Llama2-13B'], key='selected_model')
     if selected_model == 'Llama2-7B':
         llm = 'a16z-infra/llama7b-v2-chat:4f0a4744c7295c024a1de15e1a63c880d3da035fa1f49bfd344fe076074c8eea'
@@ -90,7 +61,35 @@ with st.sidebar:
     temperature = st.sidebar.slider('temperature', min_value=0.01, max_value=5.0, value=0.45, step=0.05)
     top_p = st.sidebar.slider('top_p', min_value=0.01, max_value=1.0, value=0.9, step=0.01)
     max_length = st.sidebar.slider('max_length', min_value=32, max_value=4096, value=512, step=8)
-    
+
+
+if pdf is not None:
+    pdf_reader = PdfReader(pdf)
+    text = ""
+    for page in pdf_reader.pages:
+            text+= page.extract_text()
+
+        #langchain_textspliter
+    text_splitter = RecursiveCharacterTextSplitter(
+            chunk_size = 1000,
+            chunk_overlap = 200,
+            length_function = len
+        )
+
+    chunks = text_splitter.split_text(text=text)
+    store_name = pdf.name[:-4]
+    if os.path.exists(f"{store_name}.pkl"):
+            with open(f"{store_name}.pkl","rb") as f:
+                vectorstore = pickle.load(f)
+            #st.write("Already, Embeddings loaded from the your folder (disks)")
+    else:
+            #embedding (Openai methods) 
+            embeddings = HuggingFaceEmbeddings()
+            #Store the chunks part in db (vector)
+            vectorstore = FAISS.from_texts(chunks,embedding=embeddings)
+            with open(f"{store_name}.pkl","wb") as f:
+                pickle.dump(vectorstore,f)
+            
 # Store LLM generated responses
 if "messages" not in st.session_state.keys():
     st.session_state.messages = [{"role": "assistant", "content": "How may I assist you today?"}]
