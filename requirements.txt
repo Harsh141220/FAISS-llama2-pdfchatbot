@@ -6,4 +6,4 @@ pypdf
 sentence-transformers
 streamlit_extras
 PyPDF2
-dotenv
+
