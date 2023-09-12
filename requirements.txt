@@ -1,2 +1,6 @@
 streamlit
 replicate
+pinecone-client
+langchain
+pypdf
+replicate
