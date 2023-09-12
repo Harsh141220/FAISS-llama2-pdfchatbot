@@ -1,6 +1,14 @@
 import streamlit as st
-import replicate
+from langchain.llms import Replicate
 import os
+import sys
+import pinecone
+from langchain.vectorstores import Pinecone
+from langchain.text_splitter import CharacterTextSplitter
+from langchain.document_loaders import PyPDFLoader
+from langchain.embeddings import HuggingFaceEmbeddings
+from langchain.chains import ConversationalRetrievalChain
+import requests
 
 # App title
 st.set_page_config(page_title="🦙💬 Eucloid data solutions Chatbot")
