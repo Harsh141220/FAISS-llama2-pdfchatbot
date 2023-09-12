@@ -8,6 +8,11 @@ from langchain.text_splitter import CharacterTextSplitter
 from langchain.document_loaders import PyPDFLoader
 from langchain.embeddings import HuggingFaceEmbeddings
 from langchain.chains import ConversationalRetrievalChain
+import requests
+
+url = "https://github.com/Harsh141220/Streamlit/edit/main/META-Q1-2023-Earnings-Call-Transcript%20(1).pdf"
+resp = requests.get(url)with open("myfile.pdf", "w") as f:
+    f.write(resp.text)
 
 # App title
 st.set_page_config(page_title="Eucloid Chatbot")
