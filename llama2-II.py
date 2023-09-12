@@ -2,22 +2,12 @@ import streamlit as st
 from langchain.llms import Replicate
 import os
 import sys
-import pinecone
-from langchain.vectorstores import Pinecone
-from langchain.text_splitter import CharacterTextSplitter
-from langchain.document_loaders import PyPDFLoader
 from langchain.embeddings import HuggingFaceEmbeddings
-from langchain.chains import ConversationalRetrievalChain
 import requests
-from streamlit_extras.add_vertical_space import add_vertical_space
 from PyPDF2 import PdfFileReader, PdfFileWriter,PdfReader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.vectorstores import FAISS
-from langchain.llms import OpenAI
 from langchain.chains.question_answering import load_qa_chain
-from langchain.callbacks import get_openai_callback
-
 import pickle
 import os
 #load api key lib
