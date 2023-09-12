@@ -86,7 +86,7 @@ llm2 = Replicate(
     input={"temperature": temperature, "max_length": max_length} #here temp refers to randomness of the generated text
 )
 qa_chain = ConversationalRetrievalChain.from_llm(llm2,vectordb.as_retriever(search_kwargs={'k': 3}),return_source_documents=True)
-result = qa_chain({'question': i, 'chat_history': chat_history})
+result = qa_chain({'question': prompt, 'chat_history': chat_history})
 
 # Generate a new response if last message is not from assistant
 if st.session_state.messages[-1]["role"] != "assistant":
