@@ -10,9 +10,6 @@ from langchain.embeddings import HuggingFaceEmbeddings
 from langchain.chains import ConversationalRetrievalChain
 import requests
 
-url = "https://github.com/Harsh141220/Streamlit/edit/main/META-Q1-2023-Earnings-Call-Transcript%20(1).pdf"
-resp = requests.get(url)with open("myfile.pdf", "w") as f:
-    f.write(resp.text)
 
 # App title
 st.set_page_config(page_title="Eucloid Chatbot")
@@ -69,7 +66,7 @@ if prompt := st.chat_input(disabled=not replicate_api):
 api_key='1a07e0a3-d59b-4b01-b643-556e5210907e'
 env='gcp-starter'
 pinecone.init(api_key=api_key, environment=env)
-
+url = "https://github.com/Harsh141220/Streamlit/edit/main/META-Q1-2023-Earnings-Call-Transcript%20(1).pdf"
 loader = PyPDFLoader(url)
 documents = loader.load()
 
