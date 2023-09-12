@@ -41,13 +41,13 @@ chat_history=[]
 replicate_api="r8_SfExzEDw1tiyfpKl7ADFiAyaMu1rJfB1VE5m2"
 os.environ['REPLICATE_API_TOKEN'] = replicate_api
 
+pdf = st.file_uploader("Upload your PDF", type='pdf')
+st.write(pdf.name)
 # Replicate Credentials
 with st.sidebar:
     st.title('🦙💬 Eucloid data solutions Chatbot')
     
     st.subheader('Models and parameters')
-    pdf = st.file_uploader("Upload your PDF", type='pdf')
-    st.write(pdf.name)
     selected_model = st.sidebar.selectbox('Choose a Llama2 model', ['Llama2-7B', 'Llama2-13B'], key='selected_model')
     if selected_model == 'Llama2-7B':
         llm = 'a16z-infra/llama7b-v2-chat:4f0a4744c7295c024a1de15e1a63c880d3da035fa1f49bfd344fe076074c8eea'
