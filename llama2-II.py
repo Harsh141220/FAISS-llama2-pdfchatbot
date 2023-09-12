@@ -10,9 +10,41 @@ from langchain.embeddings import HuggingFaceEmbeddings
 from langchain.chains import ConversationalRetrievalChain
 import requests
 
+
+pdf = st.file_uploader("Upload your PDF", type='pdf')
+st.write(pdf.name)
+
+if pdf is not None:
+    pdf_reader = PdfReader(pdf)
+    text = ""
+    for page in pdf_reader.pages:
+            text+= page.extract_text()
+
+        #langchain_textspliter
+    text_splitter = RecursiveCharacterTextSplitter(
+            chunk_size = 1000,
+            chunk_overlap = 200,
+            length_function = len
+        )
+
+    chunks = text_splitter.split_text(text=text)
+    store_name = pdf.name[:-4]
+    if os.path.exists(f"{store_name}.pkl"):
+            with open(f"{store_name}.pkl","rb") as f:
+                vectorstore = pickle.load(f)
+            #st.write("Already, Embeddings loaded from the your folder (disks)")
+    else:
+            #embedding (Openai methods) 
+            embeddings = HuggingFaceEmbeddings()
+
+            #Store the chunks part in db (vector)
+            vectorstore = FAISS.from_texts(chunks,embedding=embeddings)
+
+            with open(f"{store_name}.pkl","wb") as f:
+                pickle.dump(vectorstore,f)
+            
 # App title
 st.set_page_config(page_title="🦙💬 Eucloid data solutions Chatbot")
-embeddings = HuggingFaceEmbeddings()
 api_key='1a07e0a3-d59b-4b01-b643-556e5210907e'
 env='gcp-starter'
 pinecone.init(api_key=api_key, environment=env)
@@ -97,3 +129,21 @@ if st.session_state.messages[-1]["role"] != "assistant":
             placeholder.markdown(full_response)
     message = {"role": "assistant", "content": full_response}
     st.session_state.messages.append(message)
+
+'''
+
+        query = st.text_input("Ask questions about related your upload pdf file")
+        #st.write(query)
+
+        if query:
+            docs = vectorstore.similarity_search(query=query,k=3)
+            #st.write(docs)
+            
+            #openai rank lnv process
+            llm = OpenAI(temperature=0)
+            chain = load_qa_chain(llm=llm, chain_type= "stuff")
+            
+            with get_openai_callback() as cb:
+                response = chain.run(input_documents = docs, question = query)
+                print(cb)
+            st.write(response)'''
