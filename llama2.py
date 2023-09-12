@@ -62,29 +62,24 @@ if prompt := st.chat_input(disabled=not replicate_api):
     with st.chat_message("user"):
         st.write(prompt)
 
+embeddings = HuggingFaceEmbeddings()
 api_key='1a07e0a3-d59b-4b01-b643-556e5210907e'
 env='gcp-starter'
 pinecone.init(api_key=api_key, environment=env)
-loader = PyPDFLoader(r"https://github.com/Harsh141220/Streamlit/edit/main/META-Q1-2023-Earnings-Call-Transcript%20(1).pdf")
+loader = PyPDFLoader("https://github.com/Harsh141220/Streamlit/edit/main/META-Q1-2023-Earnings-Call-Transcript%20(1).pdf")
 print(loader)
 documents = loader.load()
 
 # Split the documents into smaller chunks for processing
 text_splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=0)
 texts = text_splitter.split_documents(documents)
-embeddings = HuggingFaceEmbeddings()
 
 #Set up the Pinecone vector database
 index_name = "llama2"
 index = pinecone.Index(index_name)
 vectordb = Pinecone.from_documents(texts, embeddings, index_name=index_name)
 #Set up the Conversational Retrieval Chain
-qa_chain = ConversationalRetrievalChain.from_llm(
-    llm,
-    vectordb.as_retriever(search_kwargs={'k': 3}),
-    return_source_documents=True
-)
-
+qa_chain = ConversationalRetrievalChain.from_llm(llm,vectordb.as_retriever(search_kwargs={'k': 3}),return_source_documents=True)
 result = qa_chain({'question': prompt})
 
 # Generate a new response if last message is not from assistant
