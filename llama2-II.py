@@ -9,8 +9,20 @@ from langchain.document_loaders import PyPDFLoader
 from langchain.embeddings import HuggingFaceEmbeddings
 from langchain.chains import ConversationalRetrievalChain
 import requests
+from streamlit_extras.add_vertical_space import add_vertical_space
+from PyPDF2 import PdfFileReader, PdfFileWriter,PdfReader
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain.embeddings.openai import OpenAIEmbeddings
+from langchain.vectorstores import FAISS
+from langchain.llms import OpenAI
+from langchain.chains.question_answering import load_qa_chain
+from langchain.callbacks import get_openai_callback
 
-
+import pickle
+import os
+#load api key lib
+from dotenv import load_dotenv
+import base64
 pdf = st.file_uploader("Upload your PDF", type='pdf')
 st.write(pdf.name)
 
@@ -49,7 +61,6 @@ api_key='1a07e0a3-d59b-4b01-b643-556e5210907e'
 env='gcp-starter'
 pinecone.init(api_key=api_key, environment=env)
 loader = PyPDFLoader("data/META-Q1-2023-Earnings-Call-Transcript.pdf")
-print(loader)
 documents = loader.load()
 
 # Split the documents into smaller chunks for processing
@@ -105,7 +116,7 @@ def generate_llama2_response(prompt_input):
             string_dialogue += "Assistant: " + dict_message["content"] + "\n\n"
     llm2 = Replicate(model=llm,input={"temperature": temperature, "max_length": max_length, "top_p":top_p,"repetition_penalty":1 }) #here temp refers to randomness of the generated text
     qa_chain = ConversationalRetrievalChain.from_llm(llm2,vectordb.as_retriever(search_kwargs={'k': 3}),return_source_documents=True)
-    result = qa_chain({'question': f"{string_dialogue} {prompt_input} Assistant: ",'chat_history'=chat_history})
+    result = qa_chain({'question': f"{string_dialogue} {prompt_input} Assistant: ",'chat_history': chat_history})
     return result['answer']
     
 
