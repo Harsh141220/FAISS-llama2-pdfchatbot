@@ -1,9 +1,7 @@
 streamlit
 replicate
-pinecone-client
 langchain
 pypdf
 sentence-transformers
-streamlit_extras
 PyPDF2
-
+faiss-gpu
