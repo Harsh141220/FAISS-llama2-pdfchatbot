@@ -21,7 +21,6 @@ from langchain.callbacks import get_openai_callback
 import pickle
 import os
 #load api key lib
-from dotenv import load_dotenv
 import base64
 
 # App title
