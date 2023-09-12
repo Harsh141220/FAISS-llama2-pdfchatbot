@@ -65,7 +65,7 @@ st.sidebar.button('Clear Chat History', on_click=clear_chat_history)
 
 # Function for generating LLaMA2 response. Refactored from https://github.com/a16z-infra/llama2-chatbot
 def generate_llama2_response(prompt_input):
-    string_dialogue = "You are an analyst. Your work is to refer the document/information provided to you and provide an answer. If the information is not present in the pdf/text file, comment that you dont know. "
+    string_dialogue = "You are an analyst. Your work is to refer the document/information provided to you and provide an answer. "
     for dict_message in st.session_state.messages:
         if dict_message["role"] == "user":
             string_dialogue += "User: " + dict_message["content"] + "\n\n"
@@ -73,8 +73,7 @@ def generate_llama2_response(prompt_input):
             string_dialogue += "Assistant: " + dict_message["content"] + "\n\n"
     llm2 = Replicate(model=llm,input={"temperature": temperature, "max_length": max_length, "top_p":top_p,"repetition_penalty":1 }) #here temp refers to randomness of the generated text
     qa_chain = ConversationalRetrievalChain.from_llm(llm2,vectordb.as_retriever(search_kwargs={'k': 3}),return_source_documents=True)
-    result = qa_chain({'question': f"{string_dialogue} {prompt_input}", 'chat_history': chat_history})
-    chat_history.append((f"{prompt_input}", result['answer']))
+    result = qa_chain({'question': f"{string_dialogue} {prompt_input} Assistant: "})
     return result['answer']
     
 
@@ -88,7 +87,7 @@ if prompt := st.chat_input(disabled=not replicate_api):
 # Generate a new response if last message is not from assistant
 if st.session_state.messages[-1]["role"] != "assistant":
     with st.chat_message("assistant"):
-        with st.spinner("Thinking..."):
+        with st.spinner("Processing..."):
             response = generate_llama2_response(prompt)
             placeholder = st.empty()
             full_response = ''
