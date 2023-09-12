@@ -80,7 +80,7 @@ st.sidebar.button('Clear Chat History', on_click=clear_chat_history)
 # Function for generating LLaMA2 response. Refactored from https://github.com/a16z-infra/llama2-chatbot
 def generate_llama2_response(prompt_input):
     string_dialogue = "You are an analyst. Your work is to refer the document/information provided to you and provide an answer. "
-    docs = vectorstore.similarity_search(query=query,k=3)
+    docs = vectorstore.similarity_search(query=prompt_input,k=3)
     llm2 = Replicate(
         model=llm,
     input={"temperature": temperature, "max_length": max_length, "top_p":top_p } #here temp refers to randomness of the generated text
@@ -115,21 +115,3 @@ if st.session_state.messages[-1]["role"] != "assistant":
             placeholder.markdown(full_response)
     message = {"role": "assistant", "content": full_response}
     st.session_state.messages.append(message)
-
-'''
-
-        query = st.text_input("Ask questions about related your upload pdf file")
-        #st.write(query)
-
-        if query:
-            docs = vectorstore.similarity_search(query=query,k=3)
-            #st.write(docs)
-            
-            #openai rank lnv process
-            llm = OpenAI(temperature=0)
-            chain = load_qa_chain(llm=llm, chain_type= "stuff")
-            
-            with get_openai_callback() as cb:
-                response = chain.run(input_documents = docs, question = query)
-                print(cb)
-            st.write(response)'''
