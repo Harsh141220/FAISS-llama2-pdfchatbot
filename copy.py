@@ -3,11 +3,29 @@ import replicate
 import os
 
 # App title
-st.set_page_config(page_title="🦙💬 Llama 2 Chatbot")
+st.set_page_config(page_title="🦙💬 Eucloid data solutions Chatbot")
+embeddings = HuggingFaceEmbeddings()
+api_key='1a07e0a3-d59b-4b01-b643-556e5210907e'
+env='gcp-starter'
+pinecone.init(api_key=api_key, environment=env)
+loader = PyPDFLoader("data/META-Q1-2023-Earnings-Call-Transcript.pdf")
+print(loader)
+documents = loader.load()
 
+# Split the documents into smaller chunks for processing
+text_splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=0)
+texts = text_splitter.split_documents(documents)
+
+#Set up the Pinecone vector database
+index_name = "llama2"
+index = pinecone.Index(index_name)
+vectordb = Pinecone.from_documents(texts, embeddings, index_name=index_name)
+#Set up the Conversational Retrieval Chain
+
+chat_history=[]
 # Replicate Credentials
 with st.sidebar:
-    st.title('🦙💬 Llama 2 Chatbot')
+    st.title('🦙💬 Eucloid data solutions Chatbot')
     if 'REPLICATE_API_TOKEN' in st.secrets:
         st.success('API key already provided!', icon='✅')
         replicate_api = st.secrets['REPLICATE_API_TOKEN']
@@ -41,20 +59,25 @@ for message in st.session_state.messages:
 
 def clear_chat_history():
     st.session_state.messages = [{"role": "assistant", "content": "How may I assist you today?"}]
+    chat_history=[]
 st.sidebar.button('Clear Chat History', on_click=clear_chat_history)
+
 
 # Function for generating LLaMA2 response. Refactored from https://github.com/a16z-infra/llama2-chatbot
 def generate_llama2_response(prompt_input):
-    string_dialogue = "You are a helpful assistant. You do not respond as 'User' or pretend to be 'User'. You only respond once as 'Assistant'."
+    string_dialogue = "You are an analyst. Your work is to refer the document/information provided to you and provide an answer. If the information is not present in the pdf/text file, comment that you dont know. "
     for dict_message in st.session_state.messages:
         if dict_message["role"] == "user":
             string_dialogue += "User: " + dict_message["content"] + "\n\n"
         else:
             string_dialogue += "Assistant: " + dict_message["content"] + "\n\n"
-    output = replicate.run('a16z-infra/llama13b-v2-chat:df7690f1994d94e96ad9d568eac121aecf50684a0b0963b25a41cc40061269e5', 
-                           input={"prompt": f"{string_dialogue} {prompt_input} Assistant: ",
-                                  "temperature":temperature, "top_p":top_p, "max_length":max_length, "repetition_penalty":1})
-    return output
+    llm2 = Replicate(model=llm,input={"temperature": temperature, "max_length": max_length, "top_p":top_p,"repetition_penalty":1 }) #here temp refers to randomness of the generated text
+    qa_chain = ConversationalRetrievalChain.from_llm(llm2,vectordb.as_retriever(search_kwargs={'k': 3}),return_source_documents=True)
+    result = qa_chain({'question': f"{string_dialogue} {prompt_input}", 'chat_history': chat_history})
+    chat_history.append((f"{prompt_input}", result['answer']))
+    return result['answer']
+    
+
 
 # User-provided prompt
 if prompt := st.chat_input(disabled=not replicate_api):
