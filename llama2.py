@@ -65,7 +65,7 @@ api_key='1a07e0a3-d59b-4b01-b643-556e5210907e'
 env='gcp-starter'
 pinecone.init(api_key=api_key, environment=env)
 
-loader = PyPDFLoader('/dbfs/FileStore/tables/META_Q1_2023_Earnings_Call_Transcript.pdf')
+loader = PyPDFLoader('/github.com/Harsh141220/Streamlit/blob/main/META-Q1-2023-Earnings-Call-Transcript%20(1).pdf')
 documents = loader.load()
 
 # Split the documents into smaller chunks for processing
