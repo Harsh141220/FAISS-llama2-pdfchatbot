@@ -36,11 +36,7 @@ st.sidebar.button('Clear Chat History', on_click=clear_chat_history)
 # Function for generating LLaMA2 response. Refactored from https://github.com/a16z-infra/llama2-chatbot
 def generate_llama2_response(prompt_input):
     string_dialogue = "You are an analyst. Your work is to refer the document/information provided to you and provide an answer. "
-    docs = vectorstore.similarity_search(query=prompt_input,k=3)
-    llm2 = Replicate(
-        model=llm,
-    input={"temperature": temperature, "max_length": max_length, "top_p":top_p } #here temp refers to randomness of the generated text
-    )            
+    docs = vectorstore.similarity_search(query=prompt_input,k=3)         
     chain = load_qa_chain(llm=llm2, chain_type= "stuff")
     for dict_message in st.session_state.messages:
         if dict_message["role"] == "user":
@@ -55,18 +51,6 @@ def generate_llama2_response(prompt_input):
 
 if pdf is not None:
     st.write(pdf.name)
-    pinecone.init(api_key=api_key, environment=env)
-    embeddings = HuggingFaceEmbeddings()
-    index_name = "llama2"
-    index = pinecone.Index(index_name)
-    loader = PyPDFLoader(pdf.name)
-    documents = loader.load()   
-    text_splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=0)
-    texts = text_splitter.split_documents(documents)
-    vectordb = Pinecone.from_documents(texts, embeddings, index_name=index_name)
-    qa_chain = ConversationalRetrievalChain.from_llm(llm,vectordb.as_retriever(search_kwargs={'k': 3}),return_source_documents=True)
-
-                
     with st.sidebar:
         st.title('🦙💬 Eucloid data solutions Chatbot')
         st.subheader('Models and parameters')
@@ -78,7 +62,21 @@ if pdf is not None:
         temperature = st.sidebar.slider('temperature', min_value=0.01, max_value=5.0, value=0.45, step=0.05)
         top_p = st.sidebar.slider('top_p', min_value=0.01, max_value=1.0, value=0.9, step=0.01)
         max_length = st.sidebar.slider('max_length', min_value=32, max_value=4096, value=512, step=8)
-            
+
+    pinecone.init(api_key=api_key, environment=env)
+    embeddings = HuggingFaceEmbeddings()
+    index_name = "llama2"
+    index = pinecone.Index(index_name)
+    loader = PyPDFLoader(pdf.name)
+    documents = loader.load()   
+    text_splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=0)
+    texts = text_splitter.split_documents(documents)
+    vectordb = Pinecone.from_documents(texts, embeddings, index_name=index_name)
+    llm2 = Replicate(
+    model=llm,
+    input={"temperature": temperature, "max_length": max_length, "top_p":top_p } #here temp refers to randomness of the generated text
+    )   
+    qa_chain = ConversationalRetrievalChain.from_llm(llm2,vectordb.as_retriever(search_kwargs={'k': 3}),return_source_documents=True)
 # Store LLM generated responses
     if "messages" not in st.session_state.keys():
         st.session_state.messages = [{"role": "assistant", "content": "How may I assist you today?"}]
