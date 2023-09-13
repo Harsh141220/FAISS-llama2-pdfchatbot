@@ -26,10 +26,7 @@ env='gcp-starter'
 replicate_api="r8_SfExzEDw1tiyfpKl7ADFiAyaMu1rJfB1VE5m2"
 os.environ['REPLICATE_API_TOKEN'] = replicate_api
 
-llm = 'a16z-infra/llama13b-v2-chat:df7690f1994d94e96ad9d568eac121aecf50684a0b0963b25a41cc40061269e5'
-temperature = 0.45
-top_p=0.9
-max_length=1026
+
 st.title('🦙💬 Eucloid data solutions Chatbot')
 
 def clear_chat_history():
@@ -53,38 +50,43 @@ def generate_llama2_response(prompt_input):
 
 if pdf is not None:
     st.write(pdf.name)
-pinecone.init(api_key=api_key, environment=env)
-embeddings = HuggingFaceEmbeddings()
-index_name = "llama2"
-index = pinecone.Index(index_name)
-loader = PyPDFLoader(pdf.name)
-documents = loader.load()   
-text_splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=0)
-texts = text_splitter.split_documents(documents)
-vectordb = Pinecone.from_documents(texts, embeddings, index_name=index_name)
-llm2 = Replicate(
-model=llm,
-input={"temperature": temperature, "max_length": max_length, "top_p":top_p } #here temp refers to randomness of the generated text
-    )   
-qa_chain = ConversationalRetrievalChain.from_llm(llm2,vectordb.as_retriever(search_kwargs={'k': 2}),return_source_documents=True)
+    loader = PyPDFLoader(pdf.name)
+    llm = 'a16z-infra/llama13b-v2-chat:df7690f1994d94e96ad9d568eac121aecf50684a0b0963b25a41cc40061269e5'
+    temperature = 0.45
+    top_p=0.9
+    max_length=1026
+
+    pinecone.init(api_key=api_key, environment=env)
+    embeddings = HuggingFaceEmbeddings()
+    index_name = "llama2"
+    index = pinecone.Index(index_name)
+    documents = loader.load()   
+    text_splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=0)
+    texts = text_splitter.split_documents(documents)
+    vectordb = Pinecone.from_documents(texts, embeddings, index_name=index_name)
+    llm2 = Replicate(
+    model=llm,
+    input={"temperature": temperature, "max_length": max_length, "top_p":top_p } #here temp refers to randomness of the generated text
+        )   
+    qa_chain = ConversationalRetrievalChain.from_llm(llm2,vectordb.as_retriever(search_kwargs={'k': 2}),return_source_documents=True)
 # Store LLM generated responses
-if "messages" not in st.session_state.keys():
+    if "messages" not in st.session_state.keys():
         st.session_state.messages = [{"role": "assistant", "content": "How may I assist you today?"}]
 
-# Display or clear chat messages
-for message in st.session_state.messages:
+    # Display or clear chat messages
+    for message in st.session_state.messages:
         with st.chat_message(message["role"]):
             st.write(message["content"])
 
 
-# User-provided prompt
-if prompt := st.chat_input(disabled=not replicate_api):
+    # User-provided prompt
+    if prompt := st.chat_input(disabled=not replicate_api):
         st.session_state.messages.append({"role": "user", "content": prompt})
         with st.chat_message("user"):
             st.write(prompt)
 
-# Generate a new response if last message is not from assistant
-if st.session_state.messages[-1]["role"] != "assistant":
+    # Generate a new response if last message is not from assistant
+    if st.session_state.messages[-1]["role"] != "assistant":
         with st.chat_message("assistant"):
             with st.spinner("Processing..."):
                 response = generate_llama2_response(prompt)
