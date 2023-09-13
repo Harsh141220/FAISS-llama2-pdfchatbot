@@ -3,5 +3,5 @@ pinecone-client
 replicate
 langchain
 sentence-transformers
-PyPDF2
+pypdf
 faiss-gpu
