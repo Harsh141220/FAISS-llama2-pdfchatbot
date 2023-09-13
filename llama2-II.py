@@ -36,8 +36,6 @@ st.sidebar.button('Clear Chat History', on_click=clear_chat_history)
 # Function for generating LLaMA2 response. Refactored from https://github.com/a16z-infra/llama2-chatbot
 def generate_llama2_response(prompt_input):
     string_dialogue = "You are an analyst. Your work is to refer the document/information provided to you and provide an answer. "
-    docs = vectorstore.similarity_search(query=prompt_input,k=3)         
-    chain = load_qa_chain(llm=llm2, chain_type= "stuff")
     for dict_message in st.session_state.messages:
         if dict_message["role"] == "user":
                 string_dialogue += "User: " + dict_message["content"] + "\n\n"
