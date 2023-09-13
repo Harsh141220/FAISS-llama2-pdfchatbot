@@ -1,4 +1,5 @@
 streamlit
+pinecone-client
 replicate
 langchain
 sentence-transformers
