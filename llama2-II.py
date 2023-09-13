@@ -5,11 +5,9 @@ import sys
 from langchain.embeddings import HuggingFaceEmbeddings
 import requests
 import pinecone
-from PyPDF2 import PdfFileReader, PdfFileWriter,PdfReader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.vectorstores import FAISS
 from langchain.chains.question_answering import load_qa_chain
-import pickle
 import os
 #load api key lib
 import base64
