@@ -16,6 +16,8 @@ import base64
 from langchain.llms import Replicate
 from langchain.vectorstores import Pinecone
 from langchain.chains import ConversationalRetrievalChain
+from langchain.text_splitter import CharacterTextSplitter
+from langchain.document_loaders import PyPDFLoader
 
 # App title
 st.set_page_config(page_title="🦙💬 Eucloid data solutions Chatbot")
@@ -55,24 +57,15 @@ def generate_llama2_response(prompt_input):
 
 if pdf is not None:
     st.write(pdf.name)
-    pdf_reader = PdfReader(pdf)
-    text = ""
-    for page in pdf_reader.pages:
-            text+= page.extract_text()
-
-        #langchain_textspliter
-    text_splitter = RecursiveCharacterTextSplitter(
-            chunk_size = 1000,
-            chunk_overlap = 200,
-            length_function = len
-        )
-
-    chunks = text_splitter.split_text(text=text)
     pinecone.init(api_key=api_key, environment=env)
     embeddings = HuggingFaceEmbeddings()
     index_name = "llama2"
     index = pinecone.Index(index_name)
-    vectordb = Pinecone.from_documents(chunks, embeddings, index_name=index_name)
+    loader = PyPDFLoader(pdf)
+    documents = loader.load()   
+    text_splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=0)
+    texts = text_splitter.split_documents(documents)
+    vectordb = Pinecone.from_documents(texts, embeddings, index_name=index_name)
     qa_chain = ConversationalRetrievalChain.from_llm(llm,vectordb.as_retriever(search_kwargs={'k': 3}),return_source_documents=True)
 
                 
