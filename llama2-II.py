@@ -23,7 +23,7 @@ chat_history=[]
 
 api_key='1a07e0a3-d59b-4b01-b643-556e5210907e'
 env='gcp-starter'
-replicate_api="r8_SfExzEDw1tiyfpKl7ADFiAyaMu1rJfB1VE5m2"
+replicate_api="r8_BIgIL2qzL2O3F2dzTUkVt2AejeyYN6J1fomnq"
 os.environ['REPLICATE_API_TOKEN'] = replicate_api
 
 
@@ -32,7 +32,7 @@ st.title('🦙💬 Eucloid data solutions Chatbot')
 def clear_chat_history():
     st.session_state.messages = [{"role": "assistant", "content": "How may I assist you today?"}]
     chat_history=[]
-st.sidebar.button('Clear Chat History', on_click=clear_chat_history)
+#st.sidebar.button('Clear Chat History', on_click=clear_chat_history)
 
 
 # Function for generating LLaMA2 response. Refactored from https://github.com/a16z-infra/llama2-chatbot
