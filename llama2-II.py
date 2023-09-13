@@ -52,8 +52,8 @@ if pdf is not None:
     st.write(pdf.name)
     loader = PyPDFLoader(pdf.name)
     llm = 'a16z-infra/llama13b-v2-chat:df7690f1994d94e96ad9d568eac121aecf50684a0b0963b25a41cc40061269e5'
-    temperature = 0.75
-    max_length=5000
+    temperature = 0.50
+    max_length=25000
 
     pinecone.init(api_key=api_key, environment=env)
     embeddings = HuggingFaceEmbeddings()
