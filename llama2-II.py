@@ -52,9 +52,8 @@ if pdf is not None:
     st.write(pdf.name)
     loader = PyPDFLoader(pdf.name)
     llm = 'a16z-infra/llama13b-v2-chat:df7690f1994d94e96ad9d568eac121aecf50684a0b0963b25a41cc40061269e5'
-    temperature = 0.45
-    top_p=0.9
-    max_length=4000
+    temperature = 0.75
+    max_length=5000
 
     pinecone.init(api_key=api_key, environment=env)
     embeddings = HuggingFaceEmbeddings()
@@ -66,7 +65,7 @@ if pdf is not None:
     vectordb = Pinecone.from_documents(texts, embeddings, index_name=index_name)
     llm2 = Replicate(
     model=llm,
-    input={"temperature": temperature, "max_length": max_length, "top_p":top_p } #here temp refers to randomness of the generated text
+    input={"temperature": temperature, "max_length": max_length } #here temp refers to randomness of the generated text
         )   
     qa_chain = ConversationalRetrievalChain.from_llm(llm2,vectordb.as_retriever(search_kwargs={'k': 2}),return_source_documents=True)
 # Store LLM generated responses
