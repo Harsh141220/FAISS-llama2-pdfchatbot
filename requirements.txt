@@ -1,7 +1,6 @@
 streamlit
 replicate
 langchain
-pypdf
 sentence-transformers
 PyPDF2
 faiss-gpu
