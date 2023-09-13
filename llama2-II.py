@@ -54,7 +54,7 @@ if pdf is not None:
     llm = 'a16z-infra/llama13b-v2-chat:df7690f1994d94e96ad9d568eac121aecf50684a0b0963b25a41cc40061269e5'
     temperature = 0.45
     top_p=0.9
-    max_length=1026
+    max_length=4000
 
     pinecone.init(api_key=api_key, environment=env)
     embeddings = HuggingFaceEmbeddings()
@@ -95,6 +95,6 @@ if pdf is not None:
                 for item in response:
                     full_response += item
                     placeholder.markdown(full_response)
-                placeholder.markdown(response)
-        message = {"role": "assistant", "content": response}
+                placeholder.markdown(full_response)
+        message = {"role": "assistant", "content": full_response}
         st.session_state.messages.append(message)
