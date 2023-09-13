@@ -61,7 +61,7 @@ if pdf is not None:
     embeddings = HuggingFaceEmbeddings()
     index_name = "llama2"
     index = pinecone.Index(index_name)
-    loader = PyPDFLoader(pdf)
+    loader = PyPDFLoader(pdf.name)
     documents = loader.load()   
     text_splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=0)
     texts = text_splitter.split_documents(documents)
