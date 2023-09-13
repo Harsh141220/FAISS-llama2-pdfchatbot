@@ -22,7 +22,7 @@ chat_history=[]
 api_key='1a07e0a3-d59b-4b01-b643-556e5210907e'
 env='gcp-starter'
 replicate_api="r8_SfExzEDw1tiyfpKl7ADFiAyaMu1rJfB1VE5m2"
-os.environ['REPLICATE_API_TOKEN'] = replicate
+os.environ['REPLICATE_API_TOKEN'] = replicate_api
 
 def clear_chat_history():
     st.session_state.messages = [{"role": "assistant", "content": "How may I assist you today?"}]
