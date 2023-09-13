@@ -27,17 +27,11 @@ env='gcp-starter'
 replicate_api="r8_SfExzEDw1tiyfpKl7ADFiAyaMu1rJfB1VE5m2"
 os.environ['REPLICATE_API_TOKEN'] = replicate_api
 
-with st.sidebar:
-        st.title('🦙💬 Eucloid data solutions Chatbot')
-        st.subheader('Models and parameters')
-        selected_model = st.sidebar.selectbox('Choose a Llama2 model', ['Llama2-7B', 'Llama2-13B'], key='selected_model')
-        if selected_model == 'Llama2-7B':
-            llm = 'a16z-infra/llama7b-v2-chat:4f0a4744c7295c024a1de15e1a63c880d3da035fa1f49bfd344fe076074c8eea'
-        elif selected_model == 'Llama2-13B':
-            llm = 'a16z-infra/llama13b-v2-chat:df7690f1994d94e96ad9d568eac121aecf50684a0b0963b25a41cc40061269e5'
-        temperature = st.sidebar.slider('temperature', min_value=0.01, max_value=5.0, value=0.45, step=0.05)
-        top_p = st.sidebar.slider('top_p', min_value=0.01, max_value=1.0, value=0.9, step=0.01)
-        max_length = st.sidebar.slider('max_length', min_value=32, max_value=4096, value=512, step=8)
+llm = 'a16z-infra/llama13b-v2-chat:df7690f1994d94e96ad9d568eac121aecf50684a0b0963b25a41cc40061269e5'
+temperature = 0.4
+top_p=0.8
+max_length=1026
+st.title('🦙💬 Eucloid data solutions Chatbot')
 
 def clear_chat_history():
     st.session_state.messages = [{"role": "assistant", "content": "How may I assist you today?"}]
@@ -74,7 +68,7 @@ if pdf is not None:
     model=llm,
     input={"temperature": temperature, "max_length": max_length, "top_p":top_p } #here temp refers to randomness of the generated text
     )   
-    qa_chain = ConversationalRetrievalChain.from_llm(llm2,vectordb.as_retriever(search_kwargs={'k': 3}),return_source_documents=True)
+    qa_chain = ConversationalRetrievalChain.from_llm(llm2,vectordb.as_retriever(search_kwargs={'k': 2}),return_source_documents=True)
 # Store LLM generated responses
 if "messages" not in st.session_state.keys():
         st.session_state.messages = [{"role": "assistant", "content": "How may I assist you today?"}]
