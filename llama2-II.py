@@ -13,6 +13,8 @@ import pickle
 import os
 #load api key lib
 import base64
+from langchain.llms import Replicate
+from langchain.vectorstores import Pinecone
 from langchain.chains import ConversationalRetrievalChain
 
 # App title
