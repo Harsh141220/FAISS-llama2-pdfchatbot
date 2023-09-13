@@ -4,6 +4,7 @@ import os
 import sys
 from langchain.embeddings import HuggingFaceEmbeddings
 import requests
+import pinecone
 from PyPDF2 import PdfFileReader, PdfFileWriter,PdfReader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.vectorstores import FAISS
